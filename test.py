@@ -1,63 +1,49 @@
-from numpy import dot
-from numpy.linalg import norm
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
-def load_image(address):
-    return np.loadtxt(address)
+x_df = pd.read_csv('hw1_ridge_x.dat', sep=",", header=None)
+y_df = pd.read_csv('hw1_ridge_y.dat', sep=",", header=None)
 
-def cosine_sim(a,b):
-    cos_sim = dot(a, b) / (norm(a) * norm(b))
-    return cos_sim
+vX = x_df.head(10)
+vY = y_df.head(10)
+tX = x_df.tail(40)
+tY = y_df.tail(40)
 
-def euclidean_dist(a,b):
-    dist = (a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2
-    return dist
+def ridge_regression(tX, tY, l):
+    n,d = tX.shape
+    i = np.identity(d, dtype=float)
+    i = pd.DataFrame(data=i)
+    exp1 = (n*l*i + tX.T.dot(tX))
+    exp1_inv = pd.DataFrame(np.linalg.pinv(exp1))
+    exp2 = (tX.T).dot(tY)
+    return exp1_inv.dot(exp2)
 
-def cluster_mean(imgs,index_list):
-    #given list of index, compute new cluster mean
-    size = len(index_list)
-    x_mean,y_mean,z_mean = 0, 0, 0
-    for index in index_list:
-        x_mean += imgs[index][0]
-        y_mean += imgs[index][1]
-        z_mean += imgs[index][2]
-    x_mean, y_mean, z_mean = x_mean/size, y_mean/size, z_mean/size
-    return np.array([x_mean,y_mean,z_mean])
+exact_sol = ridge_regression(tX, tY, 0.15)
+print("The exact solution theta for ridge regression is ",exact_sol)
 
-def k_means(k,imgs,iterations):
-    # randomly initialise centroids
-    number_of_rows = imgs.shape[0]
-    random_indices = np.random.choice(number_of_rows, size=k, replace=False)
-    centroids = imgs[random_indices, :]
+tn = tX.shape[0]
+vn = vX.shape[0]
+tloss = []
+vloss = []
+index = -np.arange(0,5,0.1)
 
-    label_dict = {}
-    centroid_dict = {}
-    while iterations>0:
-        # optimise over representatives
-        for i in range(number_of_rows):
-            label_dict[i] = centroids[0]
-            c_index = 0
-            for j in range(len(centroids)):
-                if euclidean_dist(imgs[i],centroids[j])< euclidean_dist(imgs[i],label_dict[i]):
-                    label_dict[i] = centroids[j]
-                    c_index = j
-            if c_index not in centroid_dict.keys():
-                centroid_dict[c_index] = [i]
-            else:
-                centroid_dict[c_index].append(i)
+for i in index:
+    w = ridge_regression(tX,tY,10**i)
+    tloss = tloss + [np.sum((np.dot(tX,w)-tY)**2)/tn/2]
+    vloss = vloss + [np.sum((np.dot(vX,w)-vY)**2)/vn/2]
 
-        #optimise over clusters
-        for i in range(len(centroids)):
-            centroids[i] = cluster_mean(imgs,centroid_dict[i])
+plt.plot(index,np.log(tloss),'r')
+plt.plot(index,np.log(vloss),'b')
+plt.show()
 
-        #report error and new centroids
-        error = 0
-        for i in range(len(centroids)):
-            for index in centroid_dict[i]:
-                error += euclidean_dist(centroids[i],imgs[index])
-        print("The error is ",error,"and the new centroids are ",centroids)
-        iterations -= 1
+min_vloss = float('inf')
+ind = 0
+for i,l in enumerate(vloss):
+    val = l.iloc[0]
+    if val < min_vloss:
+        min_vloss = val
+        ind = i
 
-
-imgs = load_image("kmeans-image.txt").astype(int)
-k_means(8,imgs,5)
+best_lambda = 10**index[ind]
+print("The value of lambda that minimises validation loss is ",best_lambda)

@@ -31,9 +31,19 @@ index = -np.arange(0,5,0.1)
 for i in index:
     w = ridge_regression(tX,tY,10**i)
     tloss = tloss + [np.sum((np.dot(tX,w)-tY)**2)/tn/2]
-    vloss = vloss + [np.sum((np.dot(vX,w)-vY)**2)/tn/2]
+    vloss = vloss + [np.sum((np.dot(vX,w)-vY)**2)/vn/2]
 
 plt.plot(index,np.log(tloss),'r')
 plt.plot(index,np.log(vloss),'b')
 plt.show()
-print(vloss[1])
+
+min_vloss = float('inf')
+ind = 0
+for i,l in enumerate(vloss):
+    val = l.iloc[0]
+    if val < min_vloss:
+        min_vloss = val
+        ind = i
+
+best_lambda = 10**index[ind]
+print("The value of lambda that minimises validation loss is ",best_lambda)
