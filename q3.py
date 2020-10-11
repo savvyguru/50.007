@@ -1,12 +1,39 @@
-from q2 import load_data
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
-_,x,y = load_data("hw1_ridge_x.dat","hw1_ridge_y.dat")
-vX = x[10:]
-vY = y[10:]
-tX = x[:30]
-tY = Y[:30]
+x_df = pd.read_csv('hw1_ridge_x.dat', sep=",", header=None)
+y_df = pd.read_csv('hw1_ridge_y.dat', sep=",", header=None)
 
-print(vX)
+vX = x_df.head(10)
+vY = y_df.head(10)
+tX = x_df.tail(40)
+tY = y_df.tail(40)
 
 def ridge_regression(tX, tY, l):
-    pass
+    n,d = tX.shape
+    i = np.identity(d, dtype=float)
+    i = pd.DataFrame(data=i)
+    exp1 = (n*l*i + tX.T.dot(tX))
+    exp1_inv = pd.DataFrame(np.linalg.pinv(exp1))
+    exp2 = (tX.T).dot(tY)
+    return exp1_inv.dot(exp2)
+
+exact_sol = ridge_regression(tX, tY, 0.15)
+print("The exact solution theta for ridge regression is ",exact_sol)
+
+tn = tX.shape[0]
+vn = vX.shape[0]
+tloss = []
+vloss = []
+index = -np.arange(0,5,0.1)
+
+for i in index:
+    w = ridge_regression(tX,tY,10**i)
+    tloss = tloss + [np.sum((np.dot(tX,w)-tY)**2)/tn/2]
+    vloss = vloss + [np.sum((np.dot(vX,w)-vY)**2)/tn/2]
+
+plt.plot(index,np.log(tloss),'r')
+plt.plot(index,np.log(vloss),'b')
+plt.show()
+print(vloss[1])
