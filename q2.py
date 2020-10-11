@@ -23,7 +23,6 @@ def CFLR(X,y):
     return coeffs
 
 def plot_LR(X,x,y,coeffs):
-    print("plotting")
     #predict y
     y_pred = X.dot(coeffs)
 
@@ -67,23 +66,16 @@ def cal_cost(theta, X, y):
     cost = (1/(2.0*m))*np.sum(np.square(prediction-y))
     return cost
 
-def polyRegress(X,y,d=2):
-    '''
-    X: features (without bias), vector
-    y: labels, vector
-    d: order, greater than 0
-    '''
-    assert d>0
-    X_poly = []
+def polyRegress(X,y,d):
+    # X is the unbiased x values
+    x_powers = []
     X = np.array(X)
-    #high order features
-    for i in range(d+1):
-        X_poly.append(X**i)
-    X_poly = np.array(X_poly)
-    #closed form regression
-    theta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
-    cost = cal_cost(theta, X_poly.T, y)
-    return theta,X_poly, cost
+    for power in range(d+1):
+        x_powers.append(X**power)
+    x_powers = np.array(x_powers)
+    coeffs = CFLR(x_powers.T, y)
+    cost = cal_cost(coeffs, x_powers.T, y)
+    return coeffs,x_powers,cost
 
 def main():
     # X has column vector of ones while x does not
@@ -112,25 +104,6 @@ def main():
         sgd_risk = empirical_risk(y, sgd_pred)
         print("Training error for batch gradient descent is ", sgd_risk)
 
-    #polynomial regression
-    thetas = []
-    X_polys = []
-    for d in range(1, 12):
-        theta, X_poly, error = polyRegress(x, y, d)
-        thetas.append(theta)
-        X_polys.append(X_poly)
-        print('d={}'.format(d), 'Error:{:.5f}'.format(error))
-    plt.figure(figsize=(12, 8))
-
-    for i, theta in enumerate(thetas[:9]):
-        X_poly = X_polys[i]
-        preds = X_poly.T.dot(theta)
-        plt.subplot(3, 3, i + 1)
-        plt.plot(X, y, '.')
-        plt.plot(X, preds)
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.annotate('d={}'.format(i + 1), (0.5, 7))
 
 if __name__ == '__main__':
     main()

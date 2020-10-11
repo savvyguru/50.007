@@ -58,7 +58,7 @@ def k_means(k,imgs,iterations):
         for i in range(len(centroids)):
             for index in centroid_dict[i]:
                 error += euclidean_dist(centroids[i],imgs[index])
-        print("The error is ",error,"and the new centroids are ",centroids)
+        print("The error is ",error,"and the new centroids are \n",centroids)
         iterations -= 1
     return centroids,label_dict
 
