@@ -2,6 +2,7 @@ from numpy import dot
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 def load_image(address):
     return np.loadtxt(address)
@@ -62,14 +63,13 @@ def k_means(k,imgs,iterations):
     return centroids,label_dict
 
 imgs = load_image("kmeans-image.txt").astype(int)
-imgs = np.asarray(imgs)
-plt.figure()
-plt.imshow(imgs, vmin=0,vmax=255)
-plt.savefig('./visualize_after_replacing.png')
-#centroids, label_dict = k_means(8,imgs,5)
+# imgs = imgs.reshape(516,407,3)
+# plt.imsave('output.png', imgs.astype(np.uint8))
 
-# for i in range(len(imgs)):
-#     imgs[i] = tuple(label_dict[i])
-#
-# plt.imshow(imgs)
-# plt.show()
+centroids, label_dict = k_means(8,imgs,5)
+
+for i in range(len(imgs)):
+    imgs[i] = tuple(label_dict[i])
+imgs = imgs.reshape(516,407,3)
+plt.imshow(imgs)
+plt.show()
